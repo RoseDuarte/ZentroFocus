@@ -104,11 +104,11 @@ function ProductivitySection({ history }: Props) {
 
             <div className="chart-container" style={{width: "70%", height: 200}}>
                 <ResponsiveContainer>
-                    <LineChart data={last7Days}>
-                        <XAxis dataKey="day"/>
-                        <YAxis />
-                        <Tooltip/>
-                        <Line type="monotone" dataKey="minutes" stroke="#8b5cf6"/>
+                    <LineChart data={last7Days} margin={{ top: 10, right: 10, left: 0, bottom: 0 }}>
+                        <XAxis dataKey="day" tick={{ fontSize: 10 }} interval="preserveStartEnd"/>
+                        <YAxis tick={{ fontSize: 10 }} width={25} />
+                        <Tooltip contentStyle={{ fontSize: "12px" }}/>
+                        <Line type="monotone" dataKey="minutes" stroke="#8b5cf6" strokeWidth={2} dot={{ r: 3 }} activeDot={{ r: 5 }}/>
                     </LineChart>
                 </ResponsiveContainer>
             </div>

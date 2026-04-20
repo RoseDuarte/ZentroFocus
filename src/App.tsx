@@ -3,6 +3,7 @@ import Header from "./components/Header";
 import Timer from "./components/Timer";
 import Controls from "./components/Controls";
 import ProductivitySection from "./components/ProductivitySection";
+import {FOCUS_TIME} from "./constants/timer";
 
 type Session = {
   date: string;
@@ -10,7 +11,7 @@ type Session = {
 }
 
 function App() {
-  const [time, setTime] = useState(1500);
+  const [time, setTime] = useState(FOCUS_TIME);
   const [isRunning, setIsRunning] = useState(false);
   const [mode, setMode] = useState<"focus" | "shortBreak" | "longBreak">("focus");
   const [cycle, setCycle] = useState(1);
@@ -52,6 +53,7 @@ function App() {
           setCycle={setCycle}
           history={history}
           setHistory={setHistory}
+          setIsRunning={setIsRunning}
         />
 
         <Controls

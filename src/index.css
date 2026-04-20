@@ -171,6 +171,10 @@ button {
   transition: all 0.2s ease;
 }
 
+.play-button svg {
+  transform: translateX(1px); 
+}
+
 .play-button svg,
 .reset-button svg {
   font-size: 1.6rem;
@@ -237,6 +241,8 @@ button {
 }
 
 .chart-container {
+  width: 100%;
+  height: 220px;
   margin-top: 100px;
   padding: 16px;
   border-radius: 12px;
@@ -309,21 +315,58 @@ body {
 }
 
 @media (max-width: 480px) {
-  .container {
-    max-width: 100%;
+
+  .header {
+    flex-direction: column;
+    gap: 30px;
   }
 
-  .timer-circle {
-    width: 220px;
-    height: 220px;
+  
+  .play-button,
+  .reset-button {
+    width: 50px;
+    height: 50px;
+  }
+  
+  .play-button svg,
+  .reset-button svg {
+    font-size: 1.3rem;
+  }
+  
+  .productivity-section h3 {
+    text-align: center;
+    line-height: 150%;
+  }
+  
+  .cards {
+    grid-template-columns: 1fr;
+  }
+  
+  .card strong {
+    font-size: 1.4rem;
+  }
+  
+  .chart-container {
+    margin-top: 100px;
+    padding: 16px;
+    border-radius: 12px;
   }
 
-  .timer-circle h2 {
-    font-size: 3.2rem;
+  
+  .circle {
+    width: 20px;
+    height: 20px;
+    background-color: white;
+    border-radius: 50%;
+    transition: transform 0.3s;
   }
-
-  .logo h1 {
-    font-size: 1.5rem;
+  
+  .empty-message {
+    text-align: center;
+  }
+  
+  .chart-container {
+    height: 200px;
   }
 }
 

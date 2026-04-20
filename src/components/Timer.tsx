@@ -1,4 +1,6 @@
-import {useEffect} from "react"
+import {useEffect, useCallback, useRef} from "react";
+import {FOCUS_TIME, SHORT_BREAK, LONG_BREAK} from "../constants/timer";
+import {motion} from "framer-motion";
 
 type Session = {
     date: string;
@@ -17,49 +19,59 @@ type TimerProps = {
     setCycle: React.Dispatch<React.SetStateAction<number>>;
     history: Session[];
     setHistory: React.Dispatch<React.SetStateAction<Session[]>>
+    setIsRunning: React.Dispatch<React.SetStateAction<boolean>>;
 };
 
-function Timer({ time, isRunning, setTime, mode, setMode, cycle, setCycle, setHistory }: TimerProps) {
+function Timer({ time, isRunning, setTime, mode, setMode, cycle, setCycle, setHistory, setIsRunning }: TimerProps) {
+    const isEndingRef = useRef(false);
+
+    const handleTimerEnd = useCallback(() => {
+        setIsRunning(false);
+
+        if(mode === "focus") {
+            setHistory((prevHistory) => [
+                ...prevHistory,
+                {
+                    date: new Date().toISOString(),
+                    duration: FOCUS_TIME,
+                },
+            ]);
+
+            if(cycle === 4) {
+                setMode("longBreak");
+                setTime(LONG_BREAK);
+                setCycle(1);
+            } else {
+                setMode("shortBreak");
+                setTime(SHORT_BREAK);
+                setCycle((prev) => prev + 1);
+            }
+        } else {
+            setMode("focus");
+            setTime(FOCUS_TIME);
+        }
+    }, [mode, cycle, setHistory, setMode, setTime, setCycle, setIsRunning])
+
     useEffect(() => {
-        if(!isRunning) return;
-
+        if (!isRunning) return;
+    
+        isEndingRef.current = false;
+    
         const interval = setInterval(() => {
-            setTime((prev) => {
-                if(prev <=1) {
-                    clearInterval(interval);
-
-                    if(mode === "focus") {
-                        setHistory((prevHistory) => [
-                            ...prevHistory,
-                            {
-                                date: new Date().toISOString(),
-                                duration: 1500,
-                            },
-                        ]);
-                    }
-
-                    if(mode === "focus") {
-                        if(cycle === 4) {
-                            setMode("longBreak");
-                            setTime(900);
-                            setCycle(1);
-                        } else {
-                            setMode("shortBreak");
-                            setTime(300);
-                            setCycle((prevCycle) => prevCycle + 1);
-                        }
-                    } else {
-                        setMode("focus");
-                        setTime(1500);
-                    }
-                    return 0
-                }
-                return prev - 1;
-            });
+            setTime((prev) => prev - 1);
         }, 1000);
-
+    
         return () => clearInterval(interval);
-    }, [isRunning, mode, cycle, setTime, setMode, setCycle, setHistory])
+    }, [isRunning]);
+
+    useEffect(() => {
+        if(time > 0) return;
+        if(isEndingRef.current) return;
+
+        isEndingRef.current = true;
+
+        handleTimerEnd();
+    }, [time, handleTimerEnd]);
 
    const formatTime = (seconds: number) => {
         const min = Math.floor(seconds / 60);
@@ -78,20 +90,35 @@ function Timer({ time, isRunning, setTime, mode, setMode, cycle, setCycle, setHi
     const circumference = 2 * Math.PI * radius;
 
     const totalTime = 
-        mode === "focus" ? 1500 :
-        mode === "shortBreak" ? 300 :
-        900;
+        mode === "focus" ? FOCUS_TIME :
+        mode === "shortBreak" ? SHORT_BREAK :
+        LONG_BREAK;
 
-    const progress = time / totalTime;
+    const safeTime = Math.max(time, 0);
+    const progress = totalTime > 0 ? safeTime / totalTime : 0;
 
-    const strokeDashoffset = circumference * (1 - progress);
+    const strokeDashoffset = isNaN(progress)
+        ? circumference
+        : circumference * (1 - progress);
 
     return (
         <section className="timer-section">
             <span className="mode-badge">{getModeLabel()}</span>
 
-            <div className="timer-circle">
-                <svg width="240" height="240">
+            <motion.div
+                className="timer-circle"
+                animate={
+                    isRunning
+                        ? { scale: [1, 1.04, 1] }
+                        : { scale: 1 }
+                }
+                transition={{
+                    duration: 1.2,
+                    repeat: isRunning ? Infinity : 0,
+                    ease: "easeInOut"
+                }}
+            >
+                <svg width="100%" height="100%" viewBox="0 0 240 240">
 
                     <circle
                         cx="120"
@@ -116,15 +143,25 @@ function Timer({ time, isRunning, setTime, mode, setMode, cycle, setCycle, setHi
                     />
                 </svg>
 
-                <h2 className="time">{formatTime(time)}</h2>
-            </div>
+                <motion.h2
+                    key={time}
+                    className="time"
+                    initial={{ opacity: 0.5, y: 5 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ duration: 0.2 }}
+                >
+                    {formatTime(time)}
+                </motion.h2>
+            </motion.div>
 
             <div className="cycle-info">
                 <div className="dots">
-                    <span className="dot active"></span>
-                    <span className="dot"></span>
-                    <span className="dot"></span>
-                    <span className="dot"></span>
+                    {[1, 2, 3, 4].map((c) => (
+                        <span
+                            key={c}
+                            className={`dot ${cycle >= c ? "active" : ""}`}
+                        ></span>
+                    ))}
                 </div>
 
                 <p>Ciclo {cycle} de 4</p>
